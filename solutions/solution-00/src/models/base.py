@@ -1,11 +1,12 @@
 """ Abstract base class for all models """
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Optional, Type, TypeVar
 import uuid
 from abc import ABC, abstractmethod
 from src import db
 
+T = TypeVar('T', bound='Base')
 
 class Base(ABC):
     """
@@ -14,8 +15,8 @@ class Base(ABC):
     __abstract__ = True
     
     id = db.Column(db.String(36), primary_key=True, nullable=False, unique=True)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp(), nullable=False)
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp(), nullable=False)
 
     def __init__(
         self,
@@ -40,38 +41,27 @@ class Base(ABC):
         self.updated_at = updated_at or datetime.now()
 
     @classmethod
-    def get(cls, id) -> "Any | None":
+    def get(cls: Type[T], id: str) -> Optional[T]:
         """
-        This is a common method to get an specific object
-        of a class by its id
-
-        If a class needs a different implementation,
-        it should override this method
+        Get a specific object of a class by its id
         """
         from src.persistence import repo
 
         return repo.get(cls.__name__.lower(), id)
 
     @classmethod
-    def get_all(cls) -> list["Any"]:
+    def get_all(cls: Type[T]) -> list[T]:
         """
-        This is a common method to get all objects of a class
-
-        If a class needs a different implementation,
-        it should override this method
+        Get all objects of a class
         """
         from src.persistence import repo
 
         return repo.get_all(cls.__name__.lower())
 
     @classmethod
-    def delete(cls, id) -> bool:
+    def delete(cls: Type[T], id: str) -> bool:
         """
-        This is a common method to delete an specific
-        object of a class by its id
-
-        If a class needs a different implementation,
-        it should override this method
+        Delete a specific object of a class by its id
         """
         from src.persistence import repo
 
@@ -93,5 +83,5 @@ class Base(ABC):
 
     @staticmethod
     @abstractmethod
-    def update(entity_id: str, data: dict) -> Any | None:
+    def update(entity_id: str, data: dict) -> Optional[Any]:
         """Updates an object of the class"""
