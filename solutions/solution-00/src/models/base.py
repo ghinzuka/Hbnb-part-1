@@ -4,16 +4,18 @@ from datetime import datetime
 from typing import Any, Optional
 import uuid
 from abc import ABC, abstractmethod
+from src import db
 
 
 class Base(ABC):
     """
     Base Interface for all models
     """
-
-    id: str
-    created_at: datetime
-    updated_at: datetime
+    __abstract__ = True
+    
+    id = db.Column(db.String(36), primary_key=True, nullable=False, unique=True)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
 
     def __init__(
         self,
