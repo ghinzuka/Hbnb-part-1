@@ -2,8 +2,10 @@
 
 from flask import Flask
 from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 
 cors = CORS()
+db = SQLAlchemy()
 
 
 def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
@@ -13,6 +15,9 @@ def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
     """
     app = Flask(__name__)
     app.url_map.strict_slashes = False
+    
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///development.db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     app.config.from_object(config_class)
 
@@ -26,6 +31,7 @@ def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
 def register_extensions(app: Flask) -> None:
     """Register the extensions for the Flask app"""
     cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
+    db.init_app(app)
     # Further extensions can be added here
 
 
