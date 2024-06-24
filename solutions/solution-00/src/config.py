@@ -40,7 +40,7 @@ class DevelopmentConfig(Config):
     """
 
     SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URL", "sqlite:///hbnb_dev.db")
+        "DATABASE_URL", "sqlite:///development.db")
     DEBUG = True
 
 
