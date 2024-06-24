@@ -32,6 +32,8 @@ def register_extensions(app: Flask) -> None:
     """Register the extensions for the Flask app"""
     cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
     db.init_app(app)
+    with app.app_context():
+        db.create_all()
     # Further extensions can be added here
 
 
