@@ -1,43 +1,36 @@
-"""
-  Now is easy to implement the database repository. The DBRepository
-  should implement the Repository (Storage) interface and the methods defined
-  in the abstract class Storage.
-
-  The methods to implement are:
-    - get_all
-    - get
-    - save
-    - update
-    - delete
-    - reload (which can be empty)
-"""
-
 from src.models.base import Base
 from src.persistence.repository import Repository
-
+from src import db
 
 class DBRepository(Repository):
-    """Dummy DB repository"""
-
-    def __init__(self) -> None:
-        """Not implemented"""
+    """Database repository implementation"""
 
     def get_all(self, model_name: str) -> list:
-        """Not implemented"""
-        return []
+        """Get all objects of a given model"""
+        model_class = globals()[model_name]
+        return model_class.query.all()
 
     def get(self, model_name: str, obj_id: str) -> Base | None:
-        """Not implemented"""
+        """Get an object by its ID"""
+        model_class = globals()[model_name]
+        return model_class.query.get(obj_id)
 
     def reload(self) -> None:
-        """Not implemented"""
+        """Reload data (not needed for database repository)"""
+        pass
 
     def save(self, obj: Base) -> None:
-        """Not implemented"""
+        """Save an object"""
+        db.session.add(obj)
+        db.session.commit()
 
     def update(self, obj: Base) -> Base | None:
-        """Not implemented"""
+        """Update an object"""
+        db.session.commit()
+        return obj
 
     def delete(self, obj: Base) -> bool:
-        """Not implemented"""
-        return False
+        """Delete an object"""
+        db.session.delete(obj)
+        db.session.commit()
+        return True
