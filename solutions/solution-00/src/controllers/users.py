@@ -5,6 +5,7 @@ Users controller module
 from flask import abort, request
 from src.models.user import User
 from src.persistence import repo
+from src.persistence.db import DBRepository
 
 def get_users():
     """Returns all users"""
