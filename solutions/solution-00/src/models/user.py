@@ -24,7 +24,7 @@ class User(Base):
         self.email = email
         self.first_name = first_name
         self.last_name = last_name
-        self.is_amdin = is_admin
+        self.is_admin = is_admin
         self.password = password
 
     def __repr__(self) -> str:
@@ -38,6 +38,8 @@ class User(Base):
             "email": self.email,
             "first_name": self.first_name,
             "last_name": self.last_name,
+            "is_admin": self.is_admin,
+            "password": self.password,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
         }
