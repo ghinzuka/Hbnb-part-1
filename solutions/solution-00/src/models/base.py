@@ -4,16 +4,19 @@ from datetime import datetime
 from typing import Any, Optional
 import uuid
 from abc import ABC, abstractmethod
+from src import db
+from src.persistence.db import DBRepository
 
-
-class Base(ABC):
+class Base(db.Model, ABC):
     """
     Base Interface for all models
     """
 
-    id: str
-    created_at: datetime
-    updated_at: datetime
+    __abstract__ = True
+
+    id = db.Column(db.String(36), primary_key=True)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
 
     def __init__(
         self,
@@ -48,6 +51,8 @@ class Base(ABC):
         """
         from src.persistence import repo
 
+        if isinstance(repo, DBRepository):
+            return cls.query.get(id)
         return repo.get(cls.__name__.lower(), id)
 
     @classmethod
@@ -60,12 +65,14 @@ class Base(ABC):
         """
         from src.persistence import repo
 
+        if isinstance(repo, DBRepository):
+            return cls.query.all()
         return repo.get_all(cls.__name__.lower())
 
     @classmethod
     def delete(cls, id) -> bool:
         """
-        This is a common method to delete an specific
+        This is a common method to delete a specific
         object of a class by its id
 
         If a class needs a different implementation,
@@ -77,6 +84,11 @@ class Base(ABC):
 
         if not obj:
             return False
+
+        if isinstance(repo, DBRepository):
+            db.session.delete(obj)
+            db.session.commit()
+            return True
 
         return repo.delete(obj)
 
