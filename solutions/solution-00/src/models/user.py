@@ -9,6 +9,8 @@ from typing import Optional
 
 class User(Base):
     """User representation"""
+    
+    __tablename__ = 'users'
 
     email = db.Column(db.String(120),unique=True, nullable=False)
     first_name = db.Column(db.String(120), nullable=False)
