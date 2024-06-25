@@ -10,7 +10,6 @@ This module exports configuration classes for the Flask application.
 from abc import ABC
 import os
 
-
 class Config(ABC):
     """
     Initial configuration settings
@@ -39,8 +38,7 @@ class DevelopmentConfig(Config):
     ```
     """
 
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URL", "sqlite:///hbnb_dev.db")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///development.db")
     DEBUG = True
 
 
