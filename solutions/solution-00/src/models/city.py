@@ -4,23 +4,26 @@ City related functionality
 
 from src.models.base import Base
 from src.models.country import Country
+from src.persistence import repo
+from src import db
 
 
 class City(Base):
     """City representation"""
 
-    name: str
-    country_code: str
+    __tablename__ = 'cities'
 
-    def __init__(self, name: str, country_code: str, **kw) -> None:
-        """Dummy init"""
-        super().__init__(**kw)
+    name = db.Column(db.String(120), nullable=False)
+    country_code = db.Column(db.String(2), nullable=False)
 
+    def __init__(self, name: str, country_code: str, **kwargs) -> None:
+        """City initializer"""
+        super().__init__(**kwargs)
         self.name = name
         self.country_code = country_code
 
     def __repr__(self) -> str:
-        """Dummy repr"""
+        """String representation of City"""
         return f"<City {self.id} ({self.name})>"
 
     def to_dict(self) -> dict:
@@ -36,24 +39,20 @@ class City(Base):
     @staticmethod
     def create(data: dict) -> "City":
         """Create a new city"""
-        from src.persistence import repo
-
         country = Country.get(data["country_code"])
 
         if not country:
             raise ValueError("Country not found")
 
-        city = City(**data)
+        new_city = City(**data)
 
-        repo.save(city)
+        repo.save(new_city)
 
-        return city
+        return new_city
 
     @staticmethod
     def update(city_id: str, data: dict) -> "City":
         """Update an existing city"""
-        from src.persistence import repo
-
         city = City.get(city_id)
 
         if not city:
@@ -65,3 +64,23 @@ class City(Base):
         repo.update(city)
 
         return city
+
+    @classmethod
+    def get(cls, city_id: str) -> "City":
+        """Get a city by ID"""
+        return repo.get(cls.__name__.lower(), city_id)
+
+    @classmethod
+    def get_all(cls) -> list["City"]:
+        """Get all cities"""
+        return repo.get_all(cls.__name__.lower())
+
+    @classmethod
+    def delete(cls, city_id: str) -> bool:
+        """Delete a city by ID"""
+        city = cls.get(city_id)
+
+        if not city:
+            return False
+
+        return repo.delete(city)
