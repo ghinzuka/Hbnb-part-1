@@ -1,11 +1,6 @@
-"""
-City related functionality
-"""
-
 from src.models.base import Base
-from src.models.country import Country
-from src.persistence import repo
 from src import db
+from src.persistence import repo
 
 
 class City(Base):
@@ -14,7 +9,9 @@ class City(Base):
     __tablename__ = 'cities'
 
     name = db.Column(db.String(120), nullable=False)
-    country_code = db.Column(db.String(2), nullable=False)
+    country_code = db.Column(db.String(2), db.ForeignKey('countries.code'), nullable=False)
+
+    country = db.relationship('Country', backref=db.backref('cities', lazy=True))
 
     def __init__(self, name: str, country_code: str, **kwargs) -> None:
         """City initializer"""
@@ -39,12 +36,14 @@ class City(Base):
     @staticmethod
     def create(data: dict) -> "City":
         """Create a new city"""
-        country = Country.get(data["country_code"])
+        from src.models.country import Country  # Import here to avoid circular import
+
+        country = Country.get_by_code(data["country_code"])
 
         if not country:
             raise ValueError("Country not found")
 
-        new_city = City(**data)
+        new_city = City(name=data["name"], country_code=data["country_code"])
 
         repo.save(new_city)
 

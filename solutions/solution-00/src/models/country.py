@@ -1,33 +1,33 @@
-"""
-Country related functionality
-"""
+from src.models.base import Base
+from src import db
+from src.persistence import repo
+from src.models.city import City
 
 
-class Country:
+class Country(Base):
     """
     Country representation
-
-    This class does NOT inherit from Base, you can't delete or update a country
-
-    This class is used to get and list countries
     """
 
-    name: str
-    code: str
-    cities: list
+    __tablename__ = 'countries'
 
-    def __init__(self, name: str, code: str, **kw) -> None:
-        """Dummy init"""
-        super().__init__(**kw)
+    name = db.Column(db.String(120), nullable=False)
+    code = db.Column(db.String(2), nullable=False, unique=True)
+
+    cities = db.relationship("City", backref="country", lazy="dynamic")
+
+    def __init__(self, name: str, code: str, **kwargs) -> None:
+        """Country initializer"""
+        super().__init__(**kwargs)
         self.name = name
         self.code = code
 
     def __repr__(self) -> str:
-        """Dummy repr"""
+        """String representation of Country"""
         return f"<Country {self.code} ({self.name})>"
 
     def to_dict(self) -> dict:
-        """Returns the dictionary representation of the country"""
+        """Dictionary representation of the object"""
         return {
             "name": self.name,
             "code": self.code,
@@ -36,27 +36,16 @@ class Country:
     @staticmethod
     def get_all() -> list["Country"]:
         """Get all countries"""
-        from src.persistence import repo
-
-        countries: list["Country"] = repo.get_all("country")
-
-        return countries
+        return repo.get_all("countries")
 
     @staticmethod
-    def get(code: str) -> "Country | None":
+    def get_by_code(code: str) -> "Country | None":
         """Get a country by its code"""
-        for country in Country.get_all():
-            if country.code == code:
-                return country
-        return None
+        return repo.get("countries", code)
 
     @staticmethod
     def create(name: str, code: str) -> "Country":
         """Create a new country"""
-        from src.persistence import repo
-
-        country = Country(name, code)
-
-        repo.save(country)
-
-        return country
+        new_country = Country(name=name, code=code)
+        repo.save(new_country)
+        return new_country
