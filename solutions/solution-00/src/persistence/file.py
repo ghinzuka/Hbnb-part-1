@@ -7,6 +7,7 @@ import json
 from src.models.base import Base
 from src.persistence.repository import Repository
 from utils.constants import FILE_STORAGE_FILENAME
+from src.models.user import User
 
 
 class FileRepository(Repository):
@@ -130,3 +131,10 @@ class FileRepository(Repository):
         self._save_to_file()
 
         return True
+
+    def get_by_email(self, email: str) -> User | None:
+        """Get a user object by email"""
+        for user in self.get_all("user"):
+            if user.email == email:
+                return user
+        return None
