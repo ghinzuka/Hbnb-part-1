@@ -3,7 +3,7 @@ User related functionality
 """
 
 from src.models.base import Base
-from src import db
+from src import db, bcrypt
 from typing import Optional
 
 
@@ -12,23 +12,23 @@ class User(Base):
     
     __tablename__ = 'users'
 
-    email = db.Column(db.String(120),unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
     first_name = db.Column(db.String(120), nullable=False)
     last_name = db.Column(db.String(120), nullable=False)
-    password = db.Column(db.String(120), nullable=False)
-    is_admin = db.column(db.Boolean, default=False)
+    password_hash = db.Column(db.String(128), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
 
     def __init__(self, email: str, first_name: str, last_name: str, password: str, is_admin: bool = False, **kw):
-        """Dummy init"""
+        """Initialization"""
         super().__init__(**kw)
         self.email = email
         self.first_name = first_name
         self.last_name = last_name
         self.is_admin = is_admin
-        self.password = password
+        self.set_password(password)
 
     def __repr__(self) -> str:
-        """Dummy repr"""
+        """Representation"""
         return f"<User {self.id} ({self.email})>"
 
     def to_dict(self) -> dict:
@@ -39,10 +39,17 @@ class User(Base):
             "first_name": self.first_name,
             "last_name": self.last_name,
             "is_admin": self.is_admin,
-            "password": self.password,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
         }
+
+    def set_password(self, password: str):
+        """Set password method"""
+        self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+
+    def check_password(self, password: str) -> bool:
+        """Check password method"""
+        return bcrypt.check_password_hash(self.password_hash, password)
 
     @staticmethod
     def create(user: dict) -> "User":
@@ -72,7 +79,9 @@ class User(Base):
             return None
 
         for key, value in data.items():
-            if hasattr(user, key):
+            if key == 'password':
+                user.set_password(value)
+            elif hasattr(user, key):
                 setattr(user, key, value)
 
         repo.update(user)

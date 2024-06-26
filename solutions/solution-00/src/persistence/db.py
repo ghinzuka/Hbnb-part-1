@@ -7,6 +7,8 @@
 from src.models.base import Base
 from src.persistence.repository import Repository
 from src import db
+from sqlalchemy.orm.exc import NoResultFound
+from src.models import User
 
 class DBRepository(Repository):
     """Database repository implementation"""
@@ -44,3 +46,10 @@ class DBRepository(Repository):
         db.session.delete(obj)
         db.session.commit()
         return True
+    
+    def get_by_email(self, email: str) -> Base | None:
+        """Get a user object by email"""
+        try:
+            return User.query.filter_by(email=email).one()
+        except NoResultFound:
+            return None
