@@ -4,7 +4,7 @@ from src.persistence import repo
 from src.models.city import City
 
 
-class Country(Base):
+class Country():
     """
     Country representation
     """
