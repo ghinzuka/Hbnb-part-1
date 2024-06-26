@@ -19,16 +19,20 @@ def create_app() -> Flask:
 
     # Déterminer l'environnement à partir de la variable d'environnement FLASK_ENV
     env = os.getenv('FLASK_ENV', 'development')
-    
+
     # Configurer l'application en fonction de l'environnement
     if env == 'production':
         app.config.from_object('config.ProductionConfig')
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('PROD_DATABASE_URL')
+        app.config['DATABASE_TYPE'] = os.getenv('PROD_DATABASE_TYPE')
     elif env == 'testing':
         app.config.from_object('config.TestingConfig')
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('TEST_DATABASE_URL')
+        app.config['DATABASE_TYPE'] = os.getenv('TEST_DATABASE_TYPE')
     else:
         app.config.from_object('config.DevelopmentConfig')
-
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DEV_DATABASE_URL')
+        app.config['DATABASE_TYPE'] = os.getenv('DEV_DATABASE_TYPE')
 
     register_extensions(app)
     register_routes(app)
@@ -46,8 +50,6 @@ def register_extensions(app: Flask) -> None:
 
 def register_routes(app: Flask) -> None:
     """Import and register the routes for the Flask app"""
-
-    # Import the routes here to avoid circular imports
     from src.routes.users import users_bp
     from src.routes.countries import countries_bp
     from src.routes.cities import cities_bp
