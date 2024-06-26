@@ -14,6 +14,27 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from src.models import User
 from src import bcrypt
 from src.persistence import repo
+from functools import wraps
+
+# Décorateur personnalisé pour vérifier les permissions de l'utilisateur
+def check_user_permission(func):
+    @wraps(func)
+    @jwt_required()
+    def decorated_function(user_id, *args, **kwargs):
+        current_user = get_jwt_identity()
+        user = repo.get('user', user_id)  # Récupérer l'utilisateur par son ID
+
+        if not user:
+            return jsonify({"msg": "User not found"}), 404
+
+        # Vérifier si l'utilisateur courant est autorisé à accéder à cette ressource
+        if current_user != user.id:
+            return jsonify({"msg": "Unauthorized"}), 401
+
+        # Si autorisé, exécuter la fonction
+        return func(user_id, *args, **kwargs)
+
+    return decorated_function
 
 users_bp = Blueprint("users", __name__, url_prefix="/users")
 
@@ -21,8 +42,8 @@ users_bp.route("/", methods=["GET"])(get_users)
 users_bp.route("/", methods=["POST"])(create_user)
 
 users_bp.route("/<user_id>", methods=["GET"])(get_user_by_id)
-users_bp.route("/<user_id>", methods=["PUT"])(update_user)
-users_bp.route("/<user_id>", methods=["DELETE"])(delete_user)
+users_bp.route("/<user_id>", methods=["PUT"])(jwt_required()(check_user_permission(update_user)))
+users_bp.route("/<user_id>", methods=["DELETE"])(jwt_required()(check_user_permission(delete_user)))
 
 @users_bp.route('/login', methods=['POST'])
 def login():
@@ -42,3 +63,4 @@ def login():
 def protected():
     current_user = get_jwt_identity()
     return jsonify(logged_in_as=current_user), 200
+
