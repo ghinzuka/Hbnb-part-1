@@ -1,32 +1,40 @@
-""" Initialize the Flask app. """
-
 from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Charger les variables d'environnement à partir du fichier .env
 
 cors = CORS()
 db = SQLAlchemy()
 
-
-def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
+def create_app() -> Flask:
     """
     Create a Flask app with the given configuration class.
     The default configuration class is DevelopmentConfig.
     """
     app = Flask(__name__)
     app.url_map.strict_slashes = False
-    
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///development.db'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    app.config.from_object(config_class)
+    # Déterminer l'environnement à partir de la variable d'environnement FLASK_ENV
+    env = os.getenv('FLASK_ENV', 'development')
+    
+    # Configurer l'application en fonction de l'environnement
+    if env == 'production':
+        app.config.from_object('config.ProductionConfig')
+    elif env == 'testing':
+        app.config.from_object('config.TestingConfig')
+    else:
+        app.config.from_object('config.DevelopmentConfig')
+
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 
     register_extensions(app)
     register_routes(app)
     register_handlers(app)
 
     return app
-
 
 def register_extensions(app: Flask) -> None:
     """Register the extensions for the Flask app"""
@@ -35,7 +43,6 @@ def register_extensions(app: Flask) -> None:
     with app.app_context():
         db.create_all()
     # Further extensions can be added here
-
 
 def register_routes(app: Flask) -> None:
     """Import and register the routes for the Flask app"""
@@ -48,7 +55,6 @@ def register_routes(app: Flask) -> None:
     from src.routes.amenities import amenities_bp
     from src.routes.reviews import reviews_bp
 
-    # Register the blueprints in the app
     app.register_blueprint(users_bp)
     app.register_blueprint(countries_bp)
     app.register_blueprint(cities_bp)
@@ -56,15 +62,11 @@ def register_routes(app: Flask) -> None:
     app.register_blueprint(reviews_bp)
     app.register_blueprint(amenities_bp)
 
-
 def register_handlers(app: Flask) -> None:
     """Register the error handlers for the Flask app."""
     app.errorhandler(404)(lambda e: (
         {"error": "Not found", "message": str(e)}, 404
-    )
-    )
-    app.errorhandler(400)(
-        lambda e: (
-            {"error": "Bad request", "message": str(e)}, 400
-        )
-    )
+    ))
+    app.errorhandler(400)(lambda e: (
+        {"error": "Bad request", "message": str(e)}, 400
+    ))
