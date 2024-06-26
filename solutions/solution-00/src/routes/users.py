@@ -26,9 +26,8 @@ users_bp.route("/<user_id>", methods=["DELETE"])(delete_user)
 @users_bp.route('/login', methods=['POST'])
 def login():
     email = request.json.get('email', None)
-    user_id = request.json.get('user_id', None)
     password = request.json.get('password', None)
-    user = User.get(user_id)
+    user = User.get(email)
     if user and bcrypt.check_password_hash(user.password_hash, password):
         access_token = create_access_token(identity={'email': user.email, 'is_admin': user.is_admin})
         return jsonify(access_token=access_token), 200
