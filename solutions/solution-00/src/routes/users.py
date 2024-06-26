@@ -25,17 +25,17 @@ users_bp.route("/<user_id>", methods=["DELETE"])(delete_user)
 
 @users_bp.route('/login', methods=['POST'])
 def login():
-    email = request.json.get('email', None)
+    user_id = request.json.get('user_id', None)
     password = request.json.get('password', None)
-    user = User.query.filter_by(email=email).first()
+    user = User.get(user_id)
     if user and bcrypt.check_password_hash(user.password_hash, password):
-        access_token = create_access_token(identity={'email': user.email, 'is_admin': user.is_admin})
+        access_token = create_access_token(identity={'id': user.id, 'email': user.email, 'is_admin': user.is_admin})
         return jsonify(access_token=access_token), 200
-    return jsonify({"msg": "Wrong email or password"}), 401
+    return jsonify({"msg": "Wrong user ID or password"}), 401
 
-# Example of a protected route
 @users_bp.route('/protected', methods=['GET'])
 @jwt_required()
 def protected():
+    """Protected route that requires JWT for access."""
     current_user = get_jwt_identity()
     return jsonify(logged_in_as=current_user), 200
