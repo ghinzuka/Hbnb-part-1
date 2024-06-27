@@ -3,6 +3,7 @@ This module contains the routes for the reviews blueprint
 """
 
 from flask import Blueprint
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from src.controllers.reviews import (
     create_review,
     delete_review,
@@ -15,7 +16,7 @@ from src.controllers.reviews import (
 
 reviews_bp = Blueprint("reviews", __name__)
 
-reviews_bp.route("/places/<place_id>/reviews", methods=["POST"])(create_review)
+reviews_bp.route("/places/<place_id>/reviews", methods=["POST"])(jwt_required()(create_review))
 reviews_bp.route("/places/<place_id>/reviews")(get_reviews_from_place)
 reviews_bp.route("/users/<user_id>/reviews")(get_reviews_from_user)
 

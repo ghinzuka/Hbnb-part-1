@@ -16,22 +16,20 @@ from src import bcrypt
 from src.persistence import repo
 from functools import wraps
 
-# Décorateur personnalisé pour vérifier les permissions de l'utilisateur
+
 def check_user_permission(func):
     @wraps(func)
     @jwt_required()
     def decorated_function(user_id, *args, **kwargs):
         current_user = get_jwt_identity()
-        user = repo.get('user', user_id)  # Récupérer l'utilisateur par son ID
+        user = repo.get('user', user_id) 
 
         if not user:
             return jsonify({"msg": "User not found"}), 404
-
-        # Vérifier si l'utilisateur courant est autorisé à accéder à cette ressource
+        
         if current_user != user.id:
             return jsonify({"msg": "Unauthorized"}), 401
 
-        # Si autorisé, exécuter la fonction
         return func(user_id, *args, **kwargs)
 
     return decorated_function

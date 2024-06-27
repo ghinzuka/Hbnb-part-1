@@ -2,6 +2,7 @@ from src.models.base import Base
 from src import db
 from src.models.user import User
 from src.models.city import City
+from flask_jwt_extended import get_jwt_identity
 
 
 class Place(Base):
@@ -31,7 +32,7 @@ class Place(Base):
             self.address = data.get("address", "")
             self.latitude = float(data.get("latitude", 0.0))
             self.longitude = float(data.get("longitude", 0.0))
-            self.host_id = data["host_id"]
+            self.host_id = self.get_current_user_id()
             self.city_id = data["city_id"]
             self.price_per_night = int(data.get("price_per_night", 0))
             self.number_of_rooms = int(data.get("number_of_rooms", 0))
@@ -41,6 +42,12 @@ class Place(Base):
     def __repr__(self) -> str:
         """String representation of Place"""
         return f"<Place {self.id} ({self.name})>"
+    
+    @staticmethod
+    def get_current_user_id():
+        """Get the current user's ID from JWT"""
+        return get_jwt_identity().get('id')
+
 
     def to_dict(self) -> dict:
         """Return dictionary representation of Place"""

@@ -13,6 +13,7 @@ def get_places():
     return [place.to_dict() for place in places], 200
 
 
+
 def create_place():
     """Creates a new place"""
     data = request.get_json()
