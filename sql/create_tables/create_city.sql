@@ -1,3 +1,5 @@
+CREATE DATABASE IF NOT EXISTS hbnb;
+
 USE hbnb;
 
 CREATE TABLE City (
